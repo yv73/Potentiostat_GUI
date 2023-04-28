@@ -41,7 +41,7 @@ USB_PRODUCT_ID = 0x5740
 BAUD_RATE = 115200
 
 # device parameter list
-TIA_RESISTOR_VALUES = [20, 30, 40, 80, 120, 250, 500, 1000]
+TIA_RESISTOR_VALUES = [10.839, 30, 40, 80, 120, 250, 500, 1000]
 CURRENT_OPTION_LIST = _globals.CURRENT_OPTION_LIST
 MAX_TIA_SETTING = 7
 
@@ -88,7 +88,7 @@ class AmpUsb(object):
             self.find_voltage_source()
             time.sleep(0.5)
             # self.send_cv_parameters()
-            self.usb_write("A|1|0|0|F|2")  # set the TIA resistor to 20k ohm on startup
+            self.usb_write("A|2|0|0|F|2")  # set the TIA resistor to 20k ohm on startup
             self.calibrate()  # calibrate the TIA settings
 
     def connection_test(self, fails=0):
@@ -242,7 +242,7 @@ class AmpUsb(object):
             count_to_current = self.device_params.adc_tia.counts_to_current
             shift = self.device_params.adc_tia.shift  # the measured voltage shift of the adc/tia
             logging.debug("count to current: %4.4f", count_to_current)
-            current = [(x - shift) * count_to_current for x in _raw_data]
+            current = [(x + shift) * count_to_current for x in _raw_data]
             if swv:
                 swv_data = []
                 _index = 0
@@ -534,7 +534,7 @@ class SerialComm:
 def get_tia_settings(range_selected):
     # the current limit 100 uA was selected so set the adc Vref to +-2048 mV, TIA resistor to 20k, and adc gain to 1
     if range_selected == 0:
-        return 1, 0, 0  # adc_config, TIA resistor value, adc gain
+        return 2, 0, 1  # adc_config, TIA resistor value, adc gain
     adc_config = 2  # only the first settings uses the first adc config
     range_selected -= 1  # subtract 1 so the it now maps to the tia resistor setting
     if range_selected > MAX_TIA_SETTING:

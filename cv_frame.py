@@ -493,7 +493,7 @@ class CVFrame(ttk.Frame):
             values long to be transmitted to the device
             """
             # shift the user's voltage by the amount of the virtual ground
-            input_voltage = self.params.virtual_ground_shift - _in_volts  # mV
+            input_voltage = self.params.virtual_ground_shift + _in_volts  # mV
             # get the value needed (number of increments needed to get desired voltage, ex. desire
             # 500mV with 1 mV increments then put in 500) to put into the dac and pad it with zeros
             dac_value = self.params.dac.get_dac_count(input_voltage)

@@ -16,6 +16,8 @@ ADC_VREF = _globals.ADC_VREF  # mV
 ADC_BITS = _globals.ADC_BITS
 PWM_FREQ = _globals.PWM_FREQ
 VIRTUAL_GROUND = _globals.VIRTUAL_GROUND
+DAC_VREF = _globals.DAC_VREF
+DAC_BITS = _globals.DAC_BITS
 
 DEFAULT_CV_SETTINGS = {'start_dac_value': 159, 'start_voltage': -900, 'end_voltage': 900,
                        'sweep_start_type': 'Start', 'end_dac_value': 78,
@@ -64,7 +66,7 @@ class DeviceParameters(object):
 
         # create instances for all the important components of the device
         # self.dac = DAC("8-bit DAC", voltage_range=4080)
-        self.dac = DAC("DVDAC", voltage_range=4080)
+        self.dac = DAC("DVDAC", voltage_range=DAC_VREF)
         self.adc_tia = ADC_TIA()
         self.cv_settings = CVSettings(self.dac)
         self.amp_settings = AmpSettings(self.clk_freq_isr_pwm, self.dac)
@@ -315,11 +317,11 @@ class DAC(object):
         self.source = _type
         if _type == "8-bit DAC":
             self.bits = 8  # bits of resolution
-            self.voltage_step_size = 16
+            self.voltage_step_size = voltage_range / ((2**self.bits)-1);
 
         elif _type == "DVDAC":
             self.bits = 12  # bits of resolution
-            self.voltage_step_size = 1
+            self.voltage_step_size = voltage_range / ((2**self.bits)-1);
 
         # (mV) the full voltage step the DAC can take, NOTE: is programmable
         self.range = voltage_range
@@ -350,6 +352,9 @@ class DAC(object):
         :param shift: True / False - should the program shift the voltage to take account of the
         virtual ground
         :return: int of the digital value that should be inputted  """
+
+        return int(round(_input_voltage * (2 ** DAC_BITS) / DAC_VREF));
+
         if actual:
             return int(round(-_input_voltage + self.virtual_ground) / self.voltage_step_size)
 
@@ -373,7 +378,7 @@ class ADC_TIA(object):
     """ Class to represent the ADC and TIA current sensing block
     """
 
-    def __init__(self, adc_config=1, tia_resistor=20, adc_gain=1, bits=ADC_BITS):
+    def __init__(self, adc_config=2, tia_resistor=10.839, adc_gain=1, bits=ADC_BITS):
         # config 1 sets the Vref to +-2.048 V and config 2 sets the Vref to +-1.024 V
         self.current_options = _globals.CURRENT_LIMIT_VALUES
         self.current_option_index = 0
@@ -387,9 +392,9 @@ class ADC_TIA(object):
         self.tia_resistor = tia_resistor  # kilohms, value of resistor across the TIA opamp
         self.adc_gain = adc_gain
         if adc_gain == 1:
-            self.range_index = tia_resistor  # what current range choice to set
+            self.range_index = 0  # what current range choice to set
         else:
-            self.range_index = tia_resistor + adc_gain / 2
+            self.range_index = 0 + adc_gain / 2
         self.bits = bits
         self.counts_to_current = self.calc_counts_to_current_ua()
         self.shift = 0
@@ -397,7 +402,7 @@ class ADC_TIA(object):
         self.current_lims = self.current_options[self.current_option_index]
 
     def calc_current_lims(self):
-        max_voltage = self.adc_config / 2.0
+        max_voltage = self.adc_vref / 2.0
         max_current = max_voltage / float(self.tia_resistor)
         return max_current
 
@@ -435,9 +440,25 @@ class ADC_TIA(object):
         from the IDAC values multiply by 1/8 uA per bit
         :return: set the shift and counts_to_current attributes
         """
-        self.shift = data[7]
-        lower_count_to_current = (data[0] / 8.0) / (data[5] - data[7])
-        upper_count_to_current = (data[4] / 8.0) / (data[7] - data[9])
-        self.counts_to_current = (float(lower_count_to_current) + float(
-            upper_count_to_current)) / 2.0
+
+        adc_zero = data[7]
+        adc_val1 = data[5]
+        adc_val2 = data[9]
+
+        # lower_count_to_current = (data[0] / 8.0) / (data[5] - data[7])
+        # upper_count_to_current = (data[4] / 8.0) / (data[7] - data[9])
+        # self.counts_to_current = (float(lower_count_to_current) + float(
+        #     upper_count_to_current)) / 2.0
+
+        lower_current = (data[0] - data[2]) * DAC_VREF * 1000 / (2 ** DAC_BITS) / 10839
+        upper_current = (data[4] - data[2]) * DAC_VREF * 1000 / (2 ** DAC_BITS) / 10839
+        lower_count = 1 if adc_val1 == adc_zero else adc_val1 - adc_zero
+        upper_count = 1 if adc_val2 == adc_zero else adc_val2 - adc_zero
+        lower_count_to_current = abs(lower_current) / abs(lower_count)
+        upper_count_to_current = abs(upper_current) / abs(upper_count)
+
+        self.shift = 0 - adc_zero
+        self.counts_to_current = float(abs(upper_current - lower_current)) / float(abs(adc_val2 - adc_val1))
+        # self.counts_to_current = (float(lower_count_to_current) + float(
+        #     upper_count_to_current)) / 2.0
         logging.info('adc calibrate, counts to current: {0}'.format(self.counts_to_current))
