@@ -304,8 +304,12 @@ class CVFrame(ttk.Frame):
                 increment = 1
             print(end_dac_value, start_dac_value, increment)
             # save how many data packets should be received back from the usb
-            packet_count = ((2 * abs(end_dac_value - start_dac_value + 1) / increment)
-                            / (float(USB_IN_BYTE_SIZE) / 2.0))  # data is 2 bytes long
+            if self.settings.sweep_start_type == 'Zero':
+                packet_count = ((3 * abs(end_dac_value - start_dac_value + 1) / increment)
+                                / (float(USB_IN_BYTE_SIZE) / 2.0))  # data is 2 bytes long
+            else:
+                packet_count = ((2 * abs(end_dac_value - start_dac_value + 1) / increment)
+                                / (float(USB_IN_BYTE_SIZE) / 2.0))  # data is 2 bytes long
 
             # round up the packet count
             self.usb_packet_count = int(packet_count) + \
@@ -359,7 +363,7 @@ class CVFrame(ttk.Frame):
                 # give a 200 ms buffer to the calculated delay time
 
                 if not _delay:
-                    _delay = int(200 + self.params.cv_settings.delay_time)
+                    _delay = int(400 + self.params.cv_settings.delay_time)
                 # step 2
                 print(f"delay time: {_delay}")
                 self.master.after(int(_delay), lambda: self.run_scan_continue(canvas))

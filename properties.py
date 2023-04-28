@@ -123,7 +123,10 @@ class CVSettings(object):
         for key in DEFAULT_CV_SETTINGS:
             if not hasattr(self, key):
                 setattr(self, key, DEFAULT_CV_SETTINGS[key])
-        self.delay_time = 2 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
+        if self.sweep_start_type == 'Zero':
+            self.delay_time = 3 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
+        else:
+            self.delay_time = 2 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
         if self.use_swv:  # recalculate the delay time
             self.delay_time = 2 * self.swv_period * abs(self.start_voltage - self.end_voltage) / self.swv_inc
 
@@ -202,9 +205,12 @@ class CVSettings(object):
         self.low_voltage = min([self.start_voltage, self.end_voltage])  # not dry, in init
         self.high_voltage = max([self.start_voltage, self.end_voltage])
         self.sweep_rate = sweep_rate
-        self.delay_time = 2 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
         self.sweep_type = sweep_type
         self.sweep_start_type = start_type
+        if self.sweep_start_type == 'Zero':
+            self.delay_time = 3 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
+        else:
+            self.delay_time = 2 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
         self.swv_height = swv_height
         self.swv_inc = swv_inc
         self.swv_period = swv_period
