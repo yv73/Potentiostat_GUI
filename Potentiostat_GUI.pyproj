@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{ada7ac55-084d-46ea-9f93-63aa778e3e93}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>amp_gui.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId />
+    <TestFramework>Pytest</TestFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="docs\Startup_flowchart.png" />
+    <Content Include="settings.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="amp_frame.py" />
+    <Compile Include="amp_gui.py" />
+    <Compile Include="amp_usb_helper22.py" />
+    <Compile Include="app\amp_gui.py" />
+    <Compile Include="asv_frame.py" />
+    <Compile Include="change_toplevel.py" />
+    <Compile Include="connection_button22.py" />
+    <Compile Include="cv_frame.py" />
+    <Compile Include="DataDisplay22.py" />
+    <Compile Include="data_legend_toplevel.py" />
+    <Compile Include="docs\init_flowchart.py" />
+    <Compile Include="globals.py" />
+    <Compile Include="graph_properties.py" />
+    <Compile Include="make_voltage_lines.py" />
+    <Compile Include="option_menu.py" />
+    <Compile Include="properties.py" />
+    <Compile Include="pyplot_data_class.py" />
+    <Compile Include="tests\integration_tests\data_flows\test_cv_settings.py" />
+    <Compile Include="tests\unit_tests\test_amp_frame.py" />
+    <Compile Include="tests\unit_tests\test_cv_frame_usb.py" />
+    <Compile Include="tests\unit_tests\test_properties\test_cv_settings.py" />
+    <Compile Include="tests\unit_tests\test_serial_comm.py" />
+    <Compile Include="tests\unit_tests\test_usbcomm_ampusb.py" />
+    <Compile Include="tests\__init__.py" />
+    <Compile Include="test_pre.py" />
+    <Compile Include="TIA_R_analysis\plot_electrode_recordings.py" />
+    <Compile Include="TIA_R_analysis\plot_errors.py" />
+    <Compile Include="tkinter_canvas_graph.py" />
+    <Compile Include="tkinter_pyplot.py" />
+    <Compile Include="tools\graph_waveforms.py" />
+    <Compile Include="tools\serial_monitor.py" />
+    <Compile Include="toplevels.py" />
+    <Compile Include="usb_comm.py" />
+    <Compile Include="__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="app" />
+    <Folder Include="docs" />
+    <Folder Include="tests" />
+    <Folder Include="tests\integration_tests\" />
+    <Folder Include="tests\integration_tests\data_flows" />
+    <Folder Include="tests\unit_tests" />
+    <Folder Include="tests\unit_tests\test_properties" />
+    <Folder Include="TIA_R_analysis" />
+    <Folder Include="tools" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>
