@@ -296,6 +296,8 @@ class CVSettingChanges(tk.Toplevel):
             self._swv_pulse = int(float(self.swv_pulse.get()))
             self._swv_period = int(float(self.swv_period.get()))
             self._use_swv = self.use_swv.get()
+            self._sweep_type = self.sweep_type.get()
+            self._start_voltage_type = self.start_voltage_type.get()
 
             # don't have to check current range cause it was chosen from an option menu
         except ValueError as error:  # user input values failed
@@ -310,7 +312,7 @@ class CVSettingChanges(tk.Toplevel):
         # will be remembered and send all the parameters to the MCU
         if self.sweep_param_is_changed(_master.device_params):
             old_cv_settings.update_settings(self._start_volt, self._end_volt, self._freq,
-                                            self.sweep_type.get(), self.start_voltage_type.get(),
+                                            self._sweep_type, self._start_voltage_type,
                                             self._swv_pulse, self._swv_inc, self._swv_period,
                                             self._use_swv)
             cv_display.cv_label_update(_master.device_params)
@@ -343,7 +345,9 @@ class CVSettingChanges(tk.Toplevel):
                 or self._swv_period != _old_params.cv_settings.swv_period
                 or self._swv_inc != _old_params.cv_settings.swv_inc
                 or self._swv_pulse != _old_params.cv_settings.swv_height
-                or self._use_swv != _old_params.cv_settings.use_swv):
+                or self._use_swv != _old_params.cv_settings.use_swv
+                or self._sweep_type != _old_params.cv_settings.sweep_type
+                or self._start_voltage_type != _old_params.cv_settings.sweep_start_type):
 
             logging.debug("sweep_param is changed")
             return True
