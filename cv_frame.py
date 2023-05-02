@@ -311,6 +311,9 @@ class CVFrame(ttk.Frame):
                 packet_count = ((2 * abs(end_dac_value - start_dac_value + 1) / increment)
                                 / (float(USB_IN_BYTE_SIZE) / 2.0))  # data is 2 bytes long
 
+            if self.settings.use_swv:
+                packet_count *= 2;
+
             # round up the packet count
             self.usb_packet_count = int(packet_count) + \
                                        (packet_count % USB_IN_BYTE_SIZE > 0)
@@ -360,7 +363,7 @@ class CVFrame(ttk.Frame):
             if self.device.connected:
                 logging.debug("device reading")
                 # amount of time to wait for the data to be collected before getting it
-                # give a 200 ms buffer to the calculated delay time
+                # give a 400 ms buffer to the calculated delay time
 
                 if not _delay:
                     _delay = int(400 + self.params.cv_settings.delay_time)

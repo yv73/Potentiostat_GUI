@@ -123,12 +123,17 @@ class CVSettings(object):
         for key in DEFAULT_CV_SETTINGS:
             if not hasattr(self, key):
                 setattr(self, key, DEFAULT_CV_SETTINGS[key])
+
         if self.sweep_start_type == 'Zero':
-            self.delay_time = 3 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
+            if self.use_swv:
+                self.delay_time = 6 * self.swv_period * abs(self.start_voltage - self.end_voltage) / self.swv_inc
+            else:
+                self.delay_time = 3 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
         else:
-            self.delay_time = 2 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
-        if self.use_swv:  # recalculate the delay time
-            self.delay_time = 2 * self.swv_period * abs(self.start_voltage - self.end_voltage) / self.swv_inc
+            if self.use_swv:
+                self.delay_time = 4 * self.swv_period * abs(self.start_voltage - self.end_voltage) / self.swv_inc
+            else:
+                self.delay_time = 2 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
 
         self.low_voltage = min([self.start_voltage, self.end_voltage])
         self.high_voltage = max([self.start_voltage, self.end_voltage])
@@ -207,14 +212,21 @@ class CVSettings(object):
         self.sweep_rate = sweep_rate
         self.sweep_type = sweep_type
         self.sweep_start_type = start_type
-        if self.sweep_start_type == 'Zero':
-            self.delay_time = 3 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
-        else:
-            self.delay_time = 2 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
         self.swv_height = swv_height
         self.swv_inc = swv_inc
         self.swv_period = swv_period
         self.use_swv = use_swv
+
+        if self.sweep_start_type == 'Zero':
+            if self.use_swv:
+                self.delay_time = 6 * self.swv_period * abs(self.start_voltage - self.end_voltage) / self.swv_inc
+            else:
+                self.delay_time = 3 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
+        else:
+            if self.use_swv:
+                self.delay_time = 4 * self.swv_period * abs(self.start_voltage - self.end_voltage) / self.swv_inc
+            else:
+                self.delay_time = 2 * abs(self.start_voltage - self.end_voltage) / self.sweep_rate
 
         try:
             with open(SAVED_SETTINGS_FILE, 'r') as _file:
@@ -323,11 +335,11 @@ class DAC(object):
         self.source = _type
         if _type == "8-bit DAC":
             self.bits = 8  # bits of resolution
-            self.voltage_step_size = voltage_range / ((2**self.bits)-1);
+            self.voltage_step_size = voltage_range / (2**self.bits);
 
         elif _type == "DVDAC":
             self.bits = 12  # bits of resolution
-            self.voltage_step_size = voltage_range / ((2**self.bits)-1);
+            self.voltage_step_size = voltage_range / (2**self.bits);
 
         # (mV) the full voltage step the DAC can take, NOTE: is programmable
         self.range = voltage_range
@@ -345,12 +357,7 @@ class DAC(object):
         :return:  voltage step, i.e. the amount the DAC changes for an 1 bit increase in digital
         code
         """
-        if self.source == "8-bit DAC":
-            return 16
-
-        elif self.source == "DVDAC":
-            return 1
-        return  # self.range / ((2**self.bits)-1)
+        return  self.range / (2**self.bits)
 
     def get_dac_count(self, _input_voltage, shift=False, actual=False):
         """ Get the digital value the dac needs to product the input voltage
